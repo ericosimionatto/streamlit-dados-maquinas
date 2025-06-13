@@ -24,3 +24,9 @@ dados = pd.read_csv("smart_manufacturing_data.csv")
 st.subheader("Visualização dos Dados")
 st.write("As primeiras linhas do dataset são:")
 st.dataframe(dados.head())
+
+# Gerar um gráfico de barras
+st.subheader("Gráfico de Barras")
+fig_barras = px.bar(dados, x='Máquina', y='Tempo de Produção',
+                     title='Tempo de Produção por Máquina')
+st.plotly_chart(fig_barras)
