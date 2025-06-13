@@ -9,5 +9,18 @@
 # 14/06/2025
 # ----------------------------------------
 
-# Importando as bibliotecas necessárias
+# Importando as bibliotecas que serão utilizadas
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+# Configurando o título do Dashboard
+st.title("Dashboard para Análise dos Dados")
+
+# Carregar o dataset. Importando do arquivo CSV
+dados = pd.read_csv("smart_manufacturing_data.csv")
+
+# Visualizando os dados do dataset
+st.subheader("Visualização dos Dados")
+st.write("As primeiras linhas do dataset são:")
+st.dataframe(dados.head())
