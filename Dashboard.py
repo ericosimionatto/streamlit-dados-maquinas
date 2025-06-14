@@ -112,15 +112,14 @@ abas = st.tabs(["GRÁFICOS", "ANÁLISES", "CORRELAÇÃO Matriz", "SENSORES: Méd
 with abas[0]:
     st.header("Gráficos para Monitoramento das Máquinas")
 
-    # 1º Gráfico: Consumo de energia por máquina.
-    fig1 = px.line(
-        dados_maq_filtrados.groupby('machine')['energy_consumption'].sum().reset_index(),        
-        x='machine',
-        y='energy_consumption',
-        title='Consumo de Energia x Máquina'
-    )   
+    # 1º Gráfico: Situação das Máquinas conforme status: histograma
+    fig1 = px.histogram(
+        dados_maq_filtrados,
+        x='machine_status',
+        color='machine_status',
+        title='Situação geral das Máquinas por Status',
+    )
     st.plotly_chart(fig1, use_container_width=True)
-    
 
     # 2º Gráfico: Temperaturas média por máquina
     fig2 = px.bar(
@@ -150,24 +149,14 @@ with abas[0]:
     )
     st.plotly_chart(fig4, use_container_width=True)
 
-    # 5º Gráfico: Distribuição do status das máquinas: histograma
-    fig5 = px.histogram(
-        dados_maq_filtrados,
-        x='machine_status',
-        color='machine_status',
-        title='Situação geral das Máquinas por Status',
-    )
-    st.plotly_chart(fig5, use_container_width=True)
-
-    # 6º Gráfico: Temperatura x Consumo de Energia: dispersão
-    fig6 = px.scatter(
-        dados_maq_filtrados,
-        x='temperature',
+    # 5º Gráfico: Consumo de energia por máquina.
+    fig5 = px.line(
+        dados_maq_filtrados.groupby('machine')['energy_consumption'].sum().reset_index(),        
+        x='machine',
         y='energy_consumption',
-        color='anomaly_flag',
-        title='Temperatura x Consumo de Energia',
-    )
-    st.plotly_chart(fig6, use_container_width=True)
+        title='Consumo de Energia x Máquina'
+    )   
+    st.plotly_chart(fig5, use_container_width=True)
 
     # 7º Gráfico: Umidade média por máquina
     fig7 = px.line(
@@ -218,7 +207,7 @@ with abas[0]:
     )
     st.plotly_chart(fig11, use_container_width=True)
 
-    # Gráfico 12: Heatmap temporal da temperatura média diária por máquina
+    # 12º Gráfico 12: Heatmap temporal da temperatura média diária por máquina
     dados_maq_filtrados['date'] = dados_maq_filtrados['timestamp'].dt.date
     heatmap_data = dados_maq_filtrados.groupby(['machine', 'date'])['temperature'].mean().reset_index()
     heatmap_pivot = heatmap_data.pivot(index='machine', columns='date', values='temperature')
@@ -229,5 +218,49 @@ with abas[0]:
     plt.xlabel('Data')
     plt.ylabel('Máquina')
     st.pyplot(plt)
-    plt.close()  # Fecha figura para evitar sobreposição em execuções futuras
+    plt.close() 
 # ------------------------------------------------------------------------------------------------------------------------------------------
+with abas[1]:
+    st.header("ANÁLISES")
+
+    # Eventos indicando Sim/Não "Yes" e "no" na featrure maintenance_required [1 e 0]
+    dados_maq_filtrados['maintenance_required'] = dados_maq_filtrados['maintenance_required'].map({'Yes': 1, 'no': 0})
+
+    # Máquinas que precisam de manutenção
+    maq_precisa_manut = dados_maq_filtrados[dados_maq_filtrados['maintenance_required'] == 1]
+    qtde_maq_manut = maq_precisa_manut['machine'].nunique()
+
+    # Litas a Qtde de máquinas que precisam de manutenção
+    st.markdown(f"### Total de Máquinas que precisam de manutenção: {qtde_maq_manut}")
+
+    
+
+    # Gráfico: Temperatura x Consumo de Energia: dispersão
+    fig6 = px.scatter(
+        dados_maq_filtrados,
+        x='temperature',
+        y='energy_consumption',
+        color='energy_consumption',
+        title='Temperatura x Consumo de Energia',
+    )
+    st.plotly_chart(fig6, use_container_width=True)    
+
+    # Gráfico de Risco de Parada/Interrupção
+    fig_risco_parada = px.pie(              
+        dados_maq_filtrados,        
+        color='downtime_risk',
+        names='downtime_risk',
+        title='Risco de Parada/Interrupção'
+    )
+    st.plotly_chart(fig_risco_parada, use_container_width=True)
+
+    # Gráfico 14: Barras agrupadas da média de temperatura e vibração por status da máquina
+    media_status = dados_maq_filtrados.groupby('machine_status')[['temperature', 'vibration']].mean().reset_index()
+    fig14 = px.bar(
+        media_status,
+        x='machine_status',
+        y=['temperature', 'vibration'],
+        barmode='group',
+        title='Média de Temperatura e Vibração por Status da Máquina'
+    )
+    st.plotly_chart(fig14, use_container_width=True)
