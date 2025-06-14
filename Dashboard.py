@@ -13,6 +13,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import matplotlib.pyplot as plt
+
 # ---------------------------------------------
 
 # Importando a base de dados do arquivo CSV
@@ -28,6 +30,7 @@ st.set_page_config(layout='wide', page_title='Monitoramento de Máquinas')
 
 # Configurando o título do Dashboard
 st.title(":blue[<Dashboard] :blue[para Monitoramento] :blue[de Máquinas>]")
+
 
 # Estrutura de seleção para usuário escolher o que deseja visualizar
 # Filtros com sidebar
@@ -75,10 +78,12 @@ with st.sidebar:
             ]
     
     # Exibir o Total de registros filtrados
-    st.markdown(f"### Número de registros filtrados: {len(dados_maq_filtrados)}")
+    st.markdown(f"### Total de registros filtrados: {len(dados_maq_filtrados)}")
+
+    st.text("-------------------------------------")
     
     # DATAS, período, linha do tempo. Filtro fazendo uso de datas
-    st.subheader("Filtra por Data")
+    st.subheader("Filtrar por Data")
 
     # Data mínima
     data_min = dados_maq['timestamp'].min().date()
@@ -97,3 +102,131 @@ with st.sidebar:
         (dados_maq_filtrados['timestamp'].dt.date >= data_selecionada[0]) &
         (dados_maq_filtrados['timestamp'].dt.date <= data_selecionada[1])
     ]
+
+# ------------------------------------------------------------------------------------------------------
+# Dashboard com Abas
+
+# Criação das abas
+abas = st.tabs(["GRÁFICOS", "ANÁLISES", "CORRELAÇÃO Matriz", "SENSORES: Médias"])
+
+with abas[0]:
+    st.header("Gráficos para Monitoramento das Máquinas")
+
+    # 1º Gráfico: Consumo de energia por máquina.
+    fig1 = px.line(
+        dados_maq_filtrados.groupby('machine')['energy_consumption'].sum().reset_index(),        
+        x='machine',
+        y='energy_consumption',
+        title='Consumo de Energia x Máquina'
+    )   
+    st.plotly_chart(fig1, use_container_width=True)
+    
+
+    # 2º Gráfico: Temperaturas média por máquina
+    fig2 = px.bar(
+        dados_maq_filtrados.groupby('machine')['temperature'].mean().reset_index(),
+        x='machine',
+        y='temperature',
+        title='Temperatura Média x Máquina'
+    )
+    st.plotly_chart(fig2, use_container_width=True)
+
+
+    # 3º Gráfico: Vibração média por máquina
+    fig3 = px.line(
+        dados_maq_filtrados.groupby('machine')['vibration'].mean().reset_index(),
+        x='machine',
+        y='vibration',  
+        title='Vibração Média x Máquina'
+    )
+    st.plotly_chart(fig3, use_container_width=True)
+
+    # Gráfico 4: Anomalias por tipo de falha (histograma colorido)
+    fig4 = px.histogram(
+        dados_maq_filtrados,
+        x='failure_type',
+        color='anomaly_flag',
+        title='Anomalias por Tipo de Falha'
+    )
+    st.plotly_chart(fig4, use_container_width=True)
+
+    # Gráfico 5: Distribuição do status das máquinas (pizza)
+    fig5 = px.pie(
+        dados_maq_filtrados,
+        names='machine_status',
+        title='Distribuição do Status das Máquinas'
+    )
+    st.plotly_chart(fig5, use_container_width=True)
+
+    # Gráfico 6: Temperatura x Vibração (dispersão colorida)
+    fig6 = px.scatter(
+        dados_maq_filtrados,
+        x='temperature',
+        y='vibration',
+        color='anomaly_flag',
+        title='Temperatura x Vibração'
+    )
+    st.plotly_chart(fig6, use_container_width=True)
+
+    # Gráfico 7: Umidade média por máquina (barras)
+    fig7 = px.bar(
+        dados_maq_filtrados.groupby('machine')['humidity'].mean().reset_index(),
+        x='machine',
+        y='humidity',
+        title='Umidade Média por Máquina'
+    )
+    st.plotly_chart(fig7, use_container_width=True)
+
+    # Gráfico 8: Pressão média por máquina (barras)
+    fig8 = px.bar(
+        dados_maq_filtrados.groupby('machine')['pressure'].mean().reset_index(),
+        x='machine',
+        y='pressure',
+        title='Pressão Média por Máquina'
+    )
+    st.plotly_chart(fig8, use_container_width=True)
+
+    # Gráfico 9: Evolução temporal da temperatura média geral (linha)
+    temp_tempo = dados_maq_filtrados.groupby('timestamp')['temperature'].mean().reset_index()
+    fig9 = px.line(
+        temp_tempo,
+        x='timestamp',
+        y='temperature',
+        title='Evolução Temporal da Temperatura Média'
+    )
+    st.plotly_chart(fig9, use_container_width=True)
+
+    # Gráfico 10: Boxplot da vibração por máquina
+    fig10 = px.box(
+        dados_maq_filtrados,
+        x='machine',
+        y='vibration',
+        title='Distribuição da Vibração por Máquina'
+    )
+    st.plotly_chart(fig10, use_container_width=True)
+
+    # Gráfico 11: Dispersão 3D temperatura, vibração e consumo de energia
+    fig11 = px.scatter_3d(
+        dados_maq_filtrados,
+        x='temperature',
+        y='vibration',
+        z='energy_consumption',
+        color='machine_status',
+        opacity=0.7,
+        title='Gráfico 3D: Temperatura, Vibração e Consumo de Energia'
+    )
+    st.plotly_chart(fig11, use_container_width=True)
+
+    # Gráfico 12: Heatmap temporal da temperatura média diária por máquina
+    dados_maq_filtrados['date'] = dados_maq_filtrados['timestamp'].dt.date
+    heatmap_data = dados_maq_filtrados.groupby(['machine', 'date'])['temperature'].mean().reset_index()
+    heatmap_pivot = heatmap_data.pivot(index='machine', columns='date', values='temperature')
+    plt.figure(figsize=(12, 7))
+    plt.imshow(heatmap_pivot, cmap='coolwarm', aspect='auto')
+    plt.colorbar(label='Temperatura Média')
+    plt.title('Heatmap - Temperatura Média Diária por Máquina')
+    plt.xlabel('Data')
+    plt.ylabel('Máquina')
+    st.pyplot(plt)
+    plt.close()  # Fecha figura para evitar sobreposição em execuções futuras
+# ------------------------------------------------------------------------------------------------------------------------------------------
