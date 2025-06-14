@@ -1,4 +1,4 @@
-# ----------------------------------------
+# ---------------------------------------------
 # UNOESC Campos de Joaçaba
 # Pós Graduação em Industria 4.0 e IA
 # Disciplçina: Digitalização
@@ -7,69 +7,93 @@
 # Aluno: Érico Simionatto
 # Python, Dataset, Dataframe, Streamlit 
 # 14/06/2025
-# ----------------------------------------
+# ---------------------------------------------
 
 # Importando as bibliotecas que serão utilizadas
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+# ---------------------------------------------
+
+# Importando a base de dados do arquivo CSV
+dados_maq = pd.read_csv("smart_manufacturing_data.csv")
+#
+# ---------------------------------------------
+
+# Fazer o tratamento do campo de data. Facilia na visualização e Manipulação dos dados
+dados_maq['timestamp'] = pd.to_datetime(dados_maq['timestamp'])
+
+# Configurando o layout da pagins do Streamlit
+st.set_page_config(layout='wide', page_title='Monitoramento de Máquinas')
 
 # Configurando o título do Dashboard
-st.title("Dashboard para Análise dos Dados")
+st.title(":blue[<Dashboard] :blue[para Monitoramento] :blue[de Máquinas>]")
 
-st.text("Clique nas abas abaixo para ver as análises")
+# Estrutura de seleção para usuário escolher o que deseja visualizar
+# Filtros com sidebar
 
+# Construção para FILTROS (Máquina, status, Eventos, Datas)
+with st.sidebar:
+          
+    # Opção em Checkbox. Opção para selecionar todas as Máquinas
+    # value=True vem marcado por padrão
+    todas_maquinas = st.checkbox("Selecionar todas as Máquinas", value=True) 
 
-# Carregar o dataset. Importando do arquivo CSV
-dados = pd.read_csv("smart_manufacturing_data.csv")
+    if todas_maquinas:
+        
+        # Ao marcar/selecionar todas as Máquinas, dataset será copiado p/ filtro seguinte
+        dados_maq_filtrados = dados_maq.copy()
+    else:
+        
+        # Optar por filtro único ou filtro múltiplo
+        filtro_multiplas_maq = st.checkbox("Filtrar mais de uma Máquina?")
 
-# Criar três abas para a análise de dados
-aba1, aba2, aba3 = st.tabs(["RELAÇÃO DE MÁQUINAS", "RODANDO", "PARADAS"])
+        if filtro_multiplas_maq:
 
-# Aba 1: RELAÇÃO DE MÁQUINAS
-with aba1:
-    # Trazer todos os nomes das máquinas e o número total de eventos por máquina
-    st.subheader("Relação de Máquinas")
-    st.write("Lista de máquinas e o número total de eventos por máquina")
+            # Máquinas, status e as anomalias: Seleção multipla
+            machine_filter = st.multiselect("Marque a(s) Máquinas:", dados_maq['machine'].unique(), default=dados_maq['machine'].unique())
+            status_filter = st.multiselect("Marque os Status da Máquina:", dados_maq['machine_status'].unique(), default=dados_maq['machine_status'].unique())
+            anomaly_filter = st.multiselect("Marque um ou mais Indicadores de Anomalia:", dados_maq['anomaly_flag'].unique(), default=dados_maq['anomaly_flag'].unique())
 
-    # Agrupar os dados por máquina e contar o número de eventos
-    maquina_eventos = dados.groupby('machine').size().reset_index(name='total_events')
-    st.write(maquina_eventos)
+            # Atribuir os parâmetros de FILTRO multiplo dataframe original
+            dados_maq_filtrados = dados_maq[
+                (dados_maq['machine'].isin(machine_filter)) &
+                (dados_maq['machine_status'].isin(status_filter)) &
+                (dados_maq['anomaly_flag'].isin(anomaly_filter))
+            ]
+        else:
+            # Marcar/Selecionar opção única do filtro com selectbox
+            machine_filter = st.selectbox("Selecione Máquina:", dados_maq['machine'].unique())
+            status_filter = st.selectbox("Selecione Status da Máquina:", dados_maq['machine_status'].unique())
+            anomaly_filter = st.selectbox("Selecione Indicador de Anomalia:", dados_maq['anomaly_flag'].unique())
 
+            # dados_maq filtrados a partir das seleções únicas
+            dados_maq_filtrados = dados_maq[
+                (dados_maq['machine'] == machine_filter) &
+                (dados_maq['machine_status'] == status_filter) &
+                (dados_maq['anomaly_flag'] == anomaly_filter)
+            ]
     
-    # Obter o número de máquinas
-    maquinas = dados['machine'].unique()
-    num_maquinas = len(maquinas)    
-    st.write(f"Número total de máquinas: {num_maquinas}")
-
-    # Contar todos os registros do dataset
-    num_registros = len(dados)  
+    # Exibir o Total de registros filtrados
+    st.markdown(f"### Número de registros filtrados: {len(dados_maq_filtrados)}")
     
-    st.write(f"Número total de registros: {num_registros}".replace(",", "."))
-    
+    # DATAS, período, linha do tempo. Filtro fazendo uso de datas
+    st.subheader("Filtra por Data")
 
-# Aba 1: SOMENTE AS MÁQUINAS RODANDO
-with aba2:
-    # Filtrar as máquinas que estão rodando no mês de Janeiro de 01/01/2025 até 31/01/2025  
-    dados['timestamp'] = pd.to_datetime(dados['timestamp'])
-    dados['timestamp'] = dados['timestamp'].dt.strftime('%B').str.lower()  # Converter para mês em minúsculas   
-    dados['timestamp'] = dados['timestamp'].replace({'january': 'janeiro'})  # Substituir janeiro por janeiro em português
-    dados = dados[dados['timestamp'] == 'janeiro']  # Filtrar apenas janeiro    
-    maquinas_rodando = dados[dados['machine_status'] == 'Running']['machine'].unique()
-    st.write(maquinas_rodando)
+    # Data mínima
+    data_min = dados_maq['timestamp'].min().date()
 
+    # Data maxima
+    data_max = dados_maq['timestamp'].max().date()
 
-    # Obter o número de máquinas rodando
-    num_maquinas_rodando = len(maquinas_rodando)    
-    st.write(f"Número total de máquinas rodando: {num_maquinas_rodando}")
+    # Utilizando SLIDER p/ selecionar o intervalo de datas que o usuário deseja visualizar
+    data_selecionada = st.slider("Selecionar intervalo de datas:",
+                                 min_value=data_min,
+                                 max_value=data_max,
+                                 value=(data_min, data_max))
 
-
-# Filtro Sidebar: Exibir máquinas rodando
-    st.sidebar.subheader("Máquinas Rodando")
-    maquinas_rodando_sidebar = st.sidebar.multiselect("Selecione as máquinas rodando:", maquinas_rodando, default=maquinas_rodando)
-    
-    # Filtrar os dados para exibir apenas as máquinas selecionadas
-    dados_rodando = dados[dados['machine'].isin(maquinas_rodando_sidebar)]
-    
-    # Exibir os dados filtrados
-    st.write(dados_rodando) 
+    # Aplicando seleção/filtro de datas indicado pelo usuario
+    dados_maq_filtrados = dados_maq_filtrados[
+        (dados_maq_filtrados['timestamp'].dt.date >= data_selecionada[0]) &
+        (dados_maq_filtrados['timestamp'].dt.date <= data_selecionada[1])
+    ]
