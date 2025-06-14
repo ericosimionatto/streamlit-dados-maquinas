@@ -62,3 +62,14 @@ with aba2:
     # Obter o número de máquinas rodando
     num_maquinas_rodando = len(maquinas_rodando)    
     st.write(f"Número total de máquinas rodando: {num_maquinas_rodando}")
+
+
+# Filtro Sidebar: Exibir máquinas rodando
+    st.sidebar.subheader("Máquinas Rodando")
+    maquinas_rodando_sidebar = st.sidebar.multiselect("Selecione as máquinas rodando:", maquinas_rodando, default=maquinas_rodando)
+    
+    # Filtrar os dados para exibir apenas as máquinas selecionadas
+    dados_rodando = dados[dados['machine'].isin(maquinas_rodando_sidebar)]
+    
+    # Exibir os dados filtrados
+    st.write(dados_rodando) 
