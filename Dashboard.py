@@ -141,79 +141,80 @@ with abas[0]:
     )
     st.plotly_chart(fig3, use_container_width=True)
 
-    # Gráfico 4: Anomalias por tipo de falha (histograma colorido)
-    fig4 = px.histogram(
-        dados_maq_filtrados,
-        x='failure_type',
+    # 4º Gráfico: Anomalias por tipo de falha: Pizza
+    fig4 = px.pie(
+        dados_maq_filtrados,        
         color='anomaly_flag',
-        title='Anomalias por Tipo de Falha'
+        names='anomaly_flag',
+        title='Anomalias x Tipo de Falha'
     )
     st.plotly_chart(fig4, use_container_width=True)
 
-    # Gráfico 5: Distribuição do status das máquinas (pizza)
-    fig5 = px.pie(
+    # 5º Gráfico: Distribuição do status das máquinas: histograma
+    fig5 = px.histogram(
         dados_maq_filtrados,
-        names='machine_status',
-        title='Distribuição do Status das Máquinas'
+        x='machine_status',
+        color='machine_status',
+        title='Situação geral das Máquinas por Status',
     )
     st.plotly_chart(fig5, use_container_width=True)
 
-    # Gráfico 6: Temperatura x Vibração (dispersão colorida)
+    # 6º Gráfico: Temperatura x Consumo de Energia: dispersão
     fig6 = px.scatter(
         dados_maq_filtrados,
         x='temperature',
-        y='vibration',
+        y='energy_consumption',
         color='anomaly_flag',
-        title='Temperatura x Vibração'
+        title='Temperatura x Consumo de Energia',
     )
     st.plotly_chart(fig6, use_container_width=True)
 
-    # Gráfico 7: Umidade média por máquina (barras)
-    fig7 = px.bar(
+    # 7º Gráfico: Umidade média por máquina
+    fig7 = px.line(
         dados_maq_filtrados.groupby('machine')['humidity'].mean().reset_index(),
         x='machine',
         y='humidity',
-        title='Umidade Média por Máquina'
+        title='Umidade Média x Máquina'
     )
     st.plotly_chart(fig7, use_container_width=True)
 
-    # Gráfico 8: Pressão média por máquina (barras)
+    # 8º Gráfico: Pressão média por máquina
     fig8 = px.bar(
         dados_maq_filtrados.groupby('machine')['pressure'].mean().reset_index(),
         x='machine',
         y='pressure',
-        title='Pressão Média por Máquina'
+        title='Pressão Média x Máquina'
     )
     st.plotly_chart(fig8, use_container_width=True)
 
-    # Gráfico 9: Evolução temporal da temperatura média geral (linha)
-    temp_tempo = dados_maq_filtrados.groupby('timestamp')['temperature'].mean().reset_index()
+    # 9º Gráfico: Linha do tempo que mostra a evolução da temperatura
+    tempo_temperatura = dados_maq_filtrados.groupby('timestamp')['temperature'].mean().reset_index()
     fig9 = px.line(
-        temp_tempo,
+        tempo_temperatura,
         x='timestamp',
         y='temperature',
-        title='Evolução Temporal da Temperatura Média'
+        title='Linha do tempo: evolução da temperatura'
     )
     st.plotly_chart(fig9, use_container_width=True)
 
-    # Gráfico 10: Boxplot da vibração por máquina
+    # 10º Gráfico: Umidade por máquina tipo boxplot
     fig10 = px.box(
         dados_maq_filtrados,
         x='machine',
-        y='vibration',
-        title='Distribuição da Vibração por Máquina'
+        y='humidity',
+        title='Situação da Umidade por Máquina'
     )
     st.plotly_chart(fig10, use_container_width=True)
 
-    # Gráfico 11: Dispersão 3D temperatura, vibração e consumo de energia
+    # 11º Gráfico: Dispersão 3D Pressão, Temperatura,  Consumo de Energia
     fig11 = px.scatter_3d(
         dados_maq_filtrados,
-        x='temperature',
-        y='vibration',
+        x='pressure',
+        y='temperature',
         z='energy_consumption',
         color='machine_status',
         opacity=0.7,
-        title='Gráfico 3D: Temperatura, Vibração e Consumo de Energia'
+        title='Pressão | Temperatura | Consumo de Energia'
     )
     st.plotly_chart(fig11, use_container_width=True)
 
