@@ -107,7 +107,7 @@ with st.sidebar:
 # Dashboard com Abas
 
 # Criação das abas
-abas = st.tabs(["GRÁFICOS", "ANÁLISES", "CORRELAÇÃO Matriz", "SENSORES: Médias"])
+abas = st.tabs(["GRÁFICOS", "ANÁLISES", "SENSORES: Médias", "CORRELAÇÃO Matriz"])
 
 with abas[0]:
     st.header("Gráficos para Monitoramento das Máquinas")
@@ -233,17 +233,16 @@ with abas[1]:
     # Litas a Qtde de máquinas que precisam de manutenção
     st.markdown(f"### Total de Máquinas que precisam de manutenção: {qtde_maq_manut}")
 
-    
 
     # Gráfico: Temperatura x Consumo de Energia: dispersão
-    fig6 = px.scatter(
+    fig_temperatura_energia = px.scatter(
         dados_maq_filtrados,
         x='temperature',
         y='energy_consumption',
         color='energy_consumption',
         title='Temperatura x Consumo de Energia',
     )
-    st.plotly_chart(fig6, use_container_width=True)    
+    st.plotly_chart(fig_temperatura_energia, use_container_width=True)    
 
     # Gráfico de Risco de Parada/Interrupção
     fig_risco_parada = px.pie(              
@@ -264,3 +263,36 @@ with abas[1]:
         title='Média de Temperatura e Vibração por Status da Máquina'
     )
     st.plotly_chart(fig14, use_container_width=True)
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+with abas[2]:
+    st.header("Média por Sensores")
+
+    # Definir colunas correspondentes aos sensores para cálculo de média
+    colunas_sensores = ['temperature', 'vibration', 'humidity', 'pressure', 'energy_consumption']
+
+    # Calcular a média dos sensores por máquina
+    medias_por_maquina = dados_maq_filtrados.groupby('machine')[colunas_sensores].mean().reset_index()
+
+    # Exibir tabela formatada com 2 casas decimais para as médias dos sensores
+    st.dataframe(
+        medias_por_maquina.style.format({col: '{:.2f}' for col in colunas_sensores}),
+        height=600
+    )    
+    
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+with abas[3]:
+    st.header("Matriz de Correlação")
+
+    # Selecionar colunas numéricas para correlação
+    colunas_numericas = dados_maq_filtrados.select_dtypes(include=['float64', 'int64'])
+    correlacao = colunas_numericas.corr()
+
+    # Plotar matriz de correlação com matplotlib
+    plt.figure(figsize=(10, 8))
+    plt.imshow(correlacao, cmap='coolwarm', aspect='auto')
+    plt.colorbar(label='Correlação')
+    plt.title("Matriz de Correlação entre Features")
+    st.pyplot(plt)
+    plt.close()
