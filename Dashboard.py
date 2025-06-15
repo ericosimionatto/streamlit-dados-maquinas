@@ -123,10 +123,10 @@ with st.sidebar:
 # Dashboard com Abas
 
 # Criação das abas
-abas = st.tabs([" 📈GRÁFICOS", " 💡ANÁLISES", " 🔄️ SENSORES: Médias", " 📚CORRELAÇÃO Matriz"])
+abas = st.tabs(["| 📈GRÁFICOS", "| 💡ANÁLISES", "| 🔄️ SENSORES: Médias", "| 📚CORRELAÇÃO Matriz", "| 📥DOWNLOAD DOS DADOS"])
 
 with abas[0]:
-    st.header("Gráficos para Monitoramento das Máquinas")
+    st.header("Principais Gráficos")
 
     # 1º Gráfico: Situação das Máquinas conforme status: histograma
     fig1 = px.histogram(
@@ -343,3 +343,33 @@ with abas[3]:
     plt.title("Matriz de Correlação entre Features")
     st.pyplot(plt)
     plt.close()
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+# Criar nova Aba ou página para exibir os dados e permitir o download
+with abas[4]:
+    st.expander("📥 Download dos Dados Filtrados", expanded=True)
+    st.markdown("### Dados Filtrados")
+    
+    # Exibir os dados filtrados em uma tabela
+    st.dataframe(dados_maq_filtrados, use_container_width=True)
+
+    # Exibir a quantidade de registros filtrados
+    st.markdown(f"### Total de registros: {len(dados_maq_filtrados)}")
+    
+    # Trazer a quantidade de maquinas
+    quantidade_maquinas = dados_maq_filtrados['machine'].nunique()
+    st.markdown(f"### Total de Máquinas: {quantidade_maquinas}")    
+
+    # Trazer a quantidade de colunas
+    quantidade_colunas = dados_maq_filtrados.shape[1]   
+    st.markdown(f"### Total de Colunas: {quantidade_colunas}")
+            
+
+    # Botão para download dos dados filtrados
+    csv = dados_maq_filtrados.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download dos Dados Filtrados (CSV)",
+        data=csv,
+        file_name='dados_filtrados.csv',
+        mime='text/csv'
+    )
