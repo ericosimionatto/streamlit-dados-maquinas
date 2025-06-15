@@ -28,8 +28,24 @@ dados_maq['timestamp'] = pd.to_datetime(dados_maq['timestamp'])
 # Configurando o layout da pagins do Streamlit
 st.set_page_config(layout='wide', page_title='Monitoramento de Máquinas')
 
+# colorir o fundo da página com as cores cinza e azul claro
+st.markdown(
+    """
+    <style>
+    .reportview-container {
+        background-color: #f0f0f0; /* Cinza claro */
+    }
+    .stApp {
+        background-color: #e0f7fa; /* Azul claro */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Configurando o título do Dashboard
 st.title(":blue[<Dashboard] :blue[para Monitoramento] :blue[de Máquinas>]")
+
 
 
 # Estrutura de seleção para usuário escolher o que deseja visualizar
@@ -107,7 +123,7 @@ with st.sidebar:
 # Dashboard com Abas
 
 # Criação das abas
-abas = st.tabs(["GRÁFICOS", "ANÁLISES", "SENSORES: Médias", "CORRELAÇÃO Matriz"])
+abas = st.tabs([" 📈GRÁFICOS", " 💡ANÁLISES", " 🔄️ SENSORES: Médias", " 📚CORRELAÇÃO Matriz"])
 
 with abas[0]:
     st.header("Gráficos para Monitoramento das Máquinas")
@@ -265,21 +281,52 @@ with abas[1]:
     st.plotly_chart(fig14, use_container_width=True)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
+# Tabela de médias dos sensores por máquina
 with abas[2]:
-    st.header("Média por Sensores")
+    st.header("Sensores: Médias por Máquina")
 
-    # Definir colunas correspondentes aos sensores para cálculo de média
-    colunas_sensores = ['temperature', 'vibration', 'humidity', 'pressure', 'energy_consumption']
+    # Selecionado as colunas/features que identificam os sensores
+    sensores = ['energy_consumption','temperature', 'pressure', 'vibration', 'humidity']
 
-    # Calcular a média dos sensores por máquina
-    medias_por_maquina = dados_maq_filtrados.groupby('machine')[colunas_sensores].mean().reset_index()
+    # Calcular a média
+    medias_por_maquina = dados_maq_filtrados.groupby('machine')[sensores].mean().reset_index()
 
-    # Exibir tabela formatada com 2 casas decimais para as médias dos sensores
+    # Listar a Tabela. Arredondar as médias e renomear as colunas
     st.dataframe(
-        medias_por_maquina.style.format({col: '{:.2f}' for col in colunas_sensores}),
-        height=600
+        medias_por_maquina.style.format({col: '{:.0f}' for col in sensores}),
+        height=400,
+        width=000,           
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            'machine': st.column_config.Column("Máquina", width="medium"),
+            'energy_consumption': st.column_config.Column("Consumo de Energia (kWh)", width="small"),
+            'temperature': st.column_config.Column("Temperatura (°C)", width="small"),
+            'pressure': st.column_config.Column("Pressão (Pa)", width="small"),
+            'vibration': st.column_config.Column("Vibração (m/s²)", width="small"),
+            'humidity': st.column_config.Column("Umidade (%)", width="small")
+        }
     )    
     
+    # Mostrar tabela com o máximos dos sensores de temperatura, vibração, pressão, umidade e consumo de energia por máquina
+    st.subheader("Sensores: Máximos dos  por Máquina")
+    maximos_por_maquina = dados_maq_filtrados.groupby('machine')[sensores].max().reset_index()
+    st.dataframe(
+        maximos_por_maquina.style.format({col: '{:.0f}' for col in sensores}),
+        height=400,
+        width=400,           
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            'machine': st.column_config.Column("Máquina", width="medium"),
+            'energy_consumption': st.column_config.Column("Consumo de Energia (kWh)", width="small"),
+            'temperature': st.column_config.Column("Temperatura (°C)", width="small"),
+            'pressure': st.column_config.Column("Pressão (Pa)", width="small"),
+            'vibration': st.column_config.Column("Vibração (m/s²)", width="small"),
+            'humidity': st.column_config.Column("Umidade (%)", width="small")
+        }
+    )
+        
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 with abas[3]:
