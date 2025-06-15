@@ -44,7 +44,7 @@ st.markdown(
 )
 
 # Configurando o título do Dashboard
-st.title(":blue[<Dashboard] :blue[para Monitoramento] :blue[de Máquinas>]")
+st.title(":orange[Dashboard] :orange[para Monitoramento] :orange[de Máquinas]")
 
 
 
@@ -53,6 +53,10 @@ st.title(":blue[<Dashboard] :blue[para Monitoramento] :blue[de Máquinas>]")
 
 # Construção para FILTROS (Máquina, status, Eventos, Datas)
 with st.sidebar:
+
+    # Incluir uma imagem no topo da barra lateral
+    st.image("https://i2aiportal.blob.core.windows.net/static/content/2022/6/21/883719download.jpg.900x450_q85_crop.jpg", width=200)
+    st.header("Filtros de Seleção")
           
     # Opção em Checkbox. Opção para selecionar todas as Máquinas
     # value=True vem marcado por padrão
@@ -127,6 +131,11 @@ abas = st.tabs(["| 📈GRÁFICOS", "| 💡ANÁLISES", "| 🔄️ SENSORES: Médi
 
 with abas[0]:
     st.header("Principais Gráficos")
+
+    #Pintar o texto de laranja
+    st.markdown("<span style='color: green;'>Use os filtros na barra lateral para selecionar as máquinas, status e anomalias desejadas</span>", unsafe_allow_html=True) 
+    
+    
 
     # 1º Gráfico: Situação das Máquinas conforme status: histograma
     fig1 = px.histogram(
@@ -222,20 +231,8 @@ with abas[0]:
         title='Pressão | Temperatura | Consumo de Energia'
     )
     st.plotly_chart(fig11, use_container_width=True)
-
-    # 12º Gráfico 12: Heatmap temporal da temperatura média diária por máquina
-    dados_maq_filtrados['date'] = dados_maq_filtrados['timestamp'].dt.date
-    heatmap_data = dados_maq_filtrados.groupby(['machine', 'date'])['temperature'].mean().reset_index()
-    heatmap_pivot = heatmap_data.pivot(index='machine', columns='date', values='temperature')
-    plt.figure(figsize=(12, 7))
-    plt.imshow(heatmap_pivot, cmap='coolwarm', aspect='auto')
-    plt.colorbar(label='Temperatura Média')
-    plt.title('Heatmap - Temperatura Média Diária por Máquina')
-    plt.xlabel('Data')
-    plt.ylabel('Máquina')
-    st.pyplot(plt)
-    plt.close() 
-# ------------------------------------------------------------------------------------------------------------------------------------------
+    
+#---------------------------------------------------------------------------------------------------------------------------
 with abas[1]:
     st.header("ANÁLISES")
 
